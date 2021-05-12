@@ -1,1 +1,5 @@
-"# ScheduleOpti" 
+# ScheduleOpti
+
+Jobshop optimization.
+
+Under development.
