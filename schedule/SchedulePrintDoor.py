@@ -1,9 +1,8 @@
 
 from typing import List
 from src.orders_reader import OrdersReader
-from src.press import NSLOTS, THEAT, Press
+from src.press import THEAT, Press
 from src.order import Order
-NSLOTS = 3
 
 # 1. Wait till the heating is over. Change matrix for and start heating for another order.
 # 2. Avoid such cases. Have a look to the future if another order will be finished during the heating do not change matrix, wait for another order.
@@ -19,21 +18,21 @@ def get_orders()->List:
 
     return orders
 
+def get_orders_sequence(orders) -> List[Order]:
+    return [Order(ix, dur) for ix, dur in orders.get_orders_duration().items()]
+
 def main():
     orders = get_orders()
+    orders = get_orders_sequence(orders)
+    #x.sort(key=lambda x: dur[x], reverse=True)
 
-    ix = orders.get_orders_indexes()
-    dur = orders.get_orders_duration()
-    ix.sort(key=lambda x: dur[x], reverse=True)
-
-    print(ix)
     press = Press()
-    while ix:
+    while orders:
         for i in press.get_empty_slot():
-            if len(ix) == 0:
+            if len(orders) == 0:
                 break
-            order = ix.pop(0)
-            press.put_order_to_slot(i, Order(order, dur[order]))
+            order = orders.pop(0)
+            press.put_order_to_slot(i, order)
     
         # heating
         press.process_orders(THEAT)
@@ -50,5 +49,8 @@ def main():
         # chose simplest 1. - take next order, put to slot, start press, heat, if during the heating another
         # order is finished DO NOT STOP PRESS!!!
     
+    print("-"*50)
+    print(press)
+
 if __name__ == "__main__":
     main()

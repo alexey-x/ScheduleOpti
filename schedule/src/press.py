@@ -18,8 +18,8 @@ class Press:
     def get_durations(self) -> List:
         return [order.get_order_duration() for order in self.slot]
 
-    def get_first_finish_slot(self, min_duration: int) -> List[int]:
-        return [i for i, order in enumerate(self.slot) if order.get_order_duration() == min_duration]
+    #def get_first_finish_slot(self, min_duration: int) -> List[int]:
+    #    return [i for i, order in enumerate(self.slot) if order.get_order_duration() == min_duration]
 
     def get_empty_slot(self):
         return [i for i, order in enumerate(self.slot) if order.get_order_duration() == 0]
