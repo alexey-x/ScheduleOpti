@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import Dict, List
 from src.orders_reader import OrdersReader
 from src.press import THEAT, Press
 from src.order import Order
@@ -18,33 +18,20 @@ def get_orders()->List:
 
     return orders
 
-def get_orders_sequence(orders) -> List[Order]:
-    return [Order(ix, dur) for ix, dur in orders.get_orders_duration().items()]
+def get_orders_sequence(orders: Dict) -> List[Order]:
+    return [Order(ix, dur) for ix, dur in orders.items()]
 
 def main():
-    orders = get_orders()
-    orders = get_orders_sequence(orders)
+    #orders = get_orders()
+    #orders = get_orders_sequence(orders.get_orders_duration())
     #x.sort(key=lambda x: dur[x], reverse=True)
 
-    press = Press()
-    while orders:
-        for i in press.get_empty_slot():
-            if len(orders) == 0:
-                break
-            order = orders.pop(0)
-            press.put_order_to_slot(i, order)
-    
-        # heating
-        press.process_orders(THEAT)
-        print(press)
+    orders = [Order(1, 10)]
 
-        # find first finishing slot
-        first_finish_time = press.get_first_finish_time()
-        #first_finish_slot = press.get_first_finish_slot(first_finish_time)
-        press.process_orders(first_finish_time)
-        press.count_change_order_time()
-        print(press)
+    press = Press()
+    press.run(orders)
     
+
         # here the strategy applies
         # chose simplest 1. - take next order, put to slot, start press, heat, if during the heating another
         # order is finished DO NOT STOP PRESS!!!

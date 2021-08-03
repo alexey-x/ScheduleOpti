@@ -13,13 +13,13 @@ class Press:
         self.slot = [Order(None, 0)] * NSLOTS
     
     def put_order_to_slot(self, i: int, order: Order) -> None:
-        self.slot[i] = order
+        if order.get_order_duration() > 0:
+            self.slot[i] = order
+        else:
+            print(f"Order {order.get_order_index()} has duration <= 0 -- order skipped.")
 
     def get_durations(self) -> List:
-        return [order.get_order_duration() for order in self.slot]
-
-    #def get_first_finish_slot(self, min_duration: int) -> List[int]:
-    #    return [i for i, order in enumerate(self.slot) if order.get_order_duration() == min_duration]
+        return [order.get_order_duration() for order in self.slot if order.get_order_duration() > 0]
 
     def get_empty_slot(self):
         return [i for i, order in enumerate(self.slot) if order.get_order_duration() == 0]
@@ -35,41 +35,28 @@ class Press:
     def heat_orders(self):
         self.total_work_time += THEAT
 
-    def count_change_order_time(self) -> None:
+    def add_change_order_time(self) -> None:
         self.total_work_time += TCHANGE
 
+    def run(self, orders: List[Order]) -> None:
+        while orders:
+            self.add_change_order_time()
+            for i in self.get_empty_slot():
+                if len(orders) == 0: break
+                order = orders.pop(0)
+                self.put_order_to_slot(i, order)
+
+            if len(self.get_durations()) == 0:
+                print("No orders in the slots. Better raise Exception")
+                break
+    
+            self.process_orders(THEAT)
+
+            first_finish_time = self.get_first_finish_time()
+            self.process_orders(first_finish_time)
 
     def __repr__(self):
         s = f"Total time: {self.total_work_time}\n"
         for i in range(NSLOTS):
             s += f"{i}: {self.slot[i]}\n"
         return s
-
-
-    
-       
-
-    def process_single_step(self):
-        # find slot first finish
-
-        # decrease all orders by delta
-
-        # change matrix
-
-        # start work
-        #  --heat slot
-        #  --others others work according policy till end of heating
-        #  --heating over
-        #  --continue normal work or change matrix 
-
-
-        print("process")
-        for i in range(NSLOTS):
-            self.process_single_slot(i)
-
-    
-
-
-    def run(self):
-        while self.orders:
-            self.process_single_step()

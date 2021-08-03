@@ -6,7 +6,7 @@ from pandas import read_excel
 # i want them as constants
 
 ORDERSIZE = "OrderSize"
-MATRIXNAME = "MatrixName" 
+MATRIXNAME = "MatrixName"
 
 
 class OrdersReader:
