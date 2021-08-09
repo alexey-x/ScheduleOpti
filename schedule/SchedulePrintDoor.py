@@ -11,8 +11,13 @@ from src.order import Order
 
 # 1. Wait till the heating is over. Change matrix for and start heating for another order.
 #   take next order, put to slot, start press, heat, if during the heating another
-#   order is finished DO NOT STOP PRESS!!!
-# 2. Avoid such cases. Have a look to the future if another order will be finished during the heating do not change matrix, wait for another order.
+#   order is finished DO NOT STOP PRESS to change order 
+#   also DO NOT STOP when heating is done - continue and change two orders next time!!!
+#   TODO -- change order when heating is done
+# 2. Avoid such cases. Have a look to the future if another order will be finished during the heating do not change matrix, 
+#    wait for another order.
+#    Here there are subtle cases what if another order finishes just one minute after the heating etc?
+#    It is possible to introduce another somoothing time but it seems there always be more optimal solution. 
 
 
 def get_orders() -> Dict[int, int]:
@@ -28,11 +33,6 @@ def get_orders() -> Dict[int, int]:
 
 def get_orders_list(indexes: List[int], durations: Dict[int, int]) -> List[Order]:
     return [Order(ix, durations[ix]) for ix in indexes if durations[ix] > 0]
-
-
-# def get_orders_indexes_list(orders_list:List[Order]) -> List[int]:
-#    return [order.get_order_index() for order in orders_list]
-
 
 def calc_disorder(x0: array, x: array) -> int:
     return ((x0 - x) != 0).sum()
