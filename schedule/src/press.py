@@ -1,6 +1,9 @@
 from typing import List
 
-from .order import Order
+from order import Order
+from press_working_strategy import WorkingStrategy
+from press_working_strategy import DoShortOrderAndStopStrategy
+from press_working_strategy import CheckNextOrderBeforeStopStrategy
 
 NSLOTS = 3
 TCHANGE = 20
@@ -8,7 +11,8 @@ THEAT = 40
 
 
 class Press:
-    def __init__(self):
+    def __init__(self, working_strategy: WorkingStrategy):
+        self.working_strategy = working_strategy
         self.total_work_time = 0
         self.slot = [Order(None, 0)] * NSLOTS
 
@@ -37,18 +41,6 @@ class Press:
             return True
         else:
             return False
-
-    def get_min_work_time(self) -> int:
-        return min(self.get_durations())
-
-    def get_max_work_time(self) -> int:
-        return max(self.get_durations())
-
-    def get_worktime_till_stop(self, orders_left: int) -> int:
-        if orders_left == 0:
-            return self.get_max_work_time()
-        else:
-            return self.get_min_work_time()
 
     def process_orders(self, process_time: int) -> None:
         self.total_work_time += process_time
@@ -81,7 +73,7 @@ class Press:
                 print("Orders after heating.")
                 print(self.__repr__())
 
-            worktime_till_stop = self.get_worktime_till_stop(len(orders))
+            worktime_till_stop = self.working_strategy.get_worktime_till_stop(len(orders), self.get_durations())
             self.process_orders(worktime_till_stop)
             if verbose:
                 print("Orders after processing.")
@@ -99,3 +91,26 @@ class Press:
         for i in range(NSLOTS):
             s += f"{i}: {self.slot[i]}, "
         return s + "\n"
+
+
+if __name__ == "__main__":
+    from copy import deepcopy
+    orders = [
+        Order("a", 100),
+        Order("b", 50),
+        Order("c", 30),
+        Order("d", 25),
+        Order("e", 20),
+    ]
+
+    press_work_strategy = DoShortOrderAndStopStrategy()
+
+    press = Press(press_work_strategy)
+    press.run(deepcopy(orders), verbose=True)
+
+    print("-"*50)
+
+    press_work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
+    press = Press(press_work_strategy)
+    press.run(deepcopy(orders), verbose=True)
+
