@@ -1,9 +1,8 @@
 from typing import List
 
-from order import Order
-from press_working_strategy import WorkingStrategy
-from press_working_strategy import DoShortOrderAndStopStrategy
-from press_working_strategy import CheckNextOrderBeforeStopStrategy
+from . order import Order
+from . press_working_strategy import WorkingStrategy
+
 
 NSLOTS = 3
 TCHANGE = 20
@@ -95,6 +94,10 @@ class Press:
 
 if __name__ == "__main__":
     from copy import deepcopy
+
+    from press_working_strategy import DoShortOrderAndStopStrategy
+    from press_working_strategy import CheckNextOrderBeforeStopStrategy
+    
     orders = [
         Order("a", 100),
         Order("b", 50),
