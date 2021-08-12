@@ -10,8 +10,8 @@ MATRIXNAME = "MatrixName"
 
 
 class OrdersReader:
-    def __init__(self, filename: str):
-        self.orders:DataFrame = read_excel(filename)
+    def __init__(self, filename: str, nrows: int = None):
+        self.orders:DataFrame = read_excel(filename, nrows=nrows)
 
     def get_orders_number(self) -> int:
         return self.orders.shape[0]
@@ -20,7 +20,7 @@ class OrdersReader:
         return list(self.orders.index.values)
 
     def get_orders_duration(self) -> Dict[int, int]:
-        return self.orders["OrderSize"].to_dict()
+        return self.orders[ORDERSIZE].to_dict()
 
     def get_matricies_names(self) -> Dict[int, str]:
         return self.orders[MATRIXNAME].to_dict()
