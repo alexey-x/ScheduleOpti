@@ -13,7 +13,7 @@ class Press:
     def __init__(self, working_strategy: WorkingStrategy):
         self.working_strategy = working_strategy
         self.total_work_time = 0
-        self.slot = [Order(None, 0)] * NSLOTS
+        self.slot = [Order(None, 0, "")] * NSLOTS
 
     def put_order_to_slot(self, i: int, order: Order) -> None:
         if order.get_order_duration() > 0:
