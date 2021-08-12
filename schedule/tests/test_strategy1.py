@@ -4,10 +4,11 @@ sys.path.append("./src")
 sys.path.append("..")
 
 from src.press import THEAT, TCHANGE, Press
+from src.press_working_strategy import DoShortOrderAndStopStrategy
 from src.order import Order
 
 def run_press(orders):
-    press = Press()
+    press = Press(DoShortOrderAndStopStrategy())
     press.run(orders)
     return press.total_work_time
 
