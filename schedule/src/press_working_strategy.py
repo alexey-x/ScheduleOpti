@@ -1,7 +1,7 @@
-
 from typing import List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
 
 class WorkingStrategy(ABC):
     """Strategy decides how the orders should be processed."""
@@ -10,16 +10,18 @@ class WorkingStrategy(ABC):
     def get_worktime_till_stop(self) -> int:
         pass
 
+
 class DoShortOrderAndStopStrategy(WorkingStrategy):
     """After the shortest order is done change matrix for the next order."""
 
-    def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
-        if len(order_durations) == 0:
-            return 0
+    def get_worktime_till_stop(
+        self, orders_left: int, order_durations: List[int]
+    ) -> int:
         if orders_left == 0:
             return max(order_durations)
         else:
             return min(order_durations)
+
 
 @dataclass
 class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
@@ -28,18 +30,14 @@ class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
     """
 
     time_treshold: int
-    
-    def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
-        if len(order_durations) == 0:
-            return 0
+
+    def get_worktime_till_stop(
+        self, orders_left: int, order_durations: List[int]
+    ) -> int:
         if orders_left == 0:
             return max(order_durations)
         else:
             tmin = min(order_durations)
             return max(
-                [
-                    t
-                    for t in order_durations
-                    if t > tmin and t <= tmin + self.time_treshold
-                ]
+                [t for t in order_durations if tmin <= t <= tmin + self.time_treshold]
             )
