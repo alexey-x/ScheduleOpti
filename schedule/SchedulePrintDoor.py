@@ -1,81 +1,80 @@
 import click
 import datetime
 
-from typing import Dict, List
-from numpy import array
-from itertools import permutations
+from typing import List
 
+from src.press import THEAT
 from src.orders_reader import OrdersReader
-from src.press import THEAT, Press
+from src.press_working_strategy import DoShortOrderAndStopStrategy
+from src.press_working_strategy import CheckNextOrderBeforeStopStrategy
+
+
 from src.order import Order
+from src.optimize import brute_force_optimize
 
 # 1. Wait till the heating is over. Change matrix for and start heating for another order.
 #   take next order, put to slot, start press, heat, if during the heating another
-#   order is finished DO NOT STOP PRESS to change order 
+#   order is finished DO NOT STOP PRESS to change order
 #   also DO NOT STOP when heating is done - continue and change two orders next time!!!
 #   TODO -- change order when heating is done
-# 2. Avoid such cases. Have a look to the future if another order will be finished during the heating do not change matrix, 
+# 2. Avoid such cases. Have a look to the future if another order will be finished during the heating do not change matrix,
 #    wait for another order.
 #    Here there are subtle cases what if another order finishes just one minute after the heating etc?
-#    It is possible to introduce another somoothing time but it seems there always be more optimal solution. 
+#    It is possible to introduce another somoothing time but it seems there always be more optimal solution.
 
 
-def get_orders() -> Dict[int, int]:
+def get_orders(num_orders: int) -> List[Order]:
     filename = "../data/orders.xlsx"
-    orders = OrdersReader(filename)
+    orders = OrdersReader(filename, num_orders)
+    order_names = orders.get_matricies_names()
+    return [Order(ix, dur, order_names[ix]) for ix, dur in orders.get_orders_duration().items()]
 
-    # print(f"Number of orders {orders.get_orders_number()}")
-    # print(f"Orders indexies {orders.get_orders_indexes()}")
-    # print(f"Orders duration {orders.get_orders_duration()}")
-
-    return orders.get_orders_duration()
-
-
-def get_orders_list(indexes: List[int], durations: Dict[int, int]) -> List[Order]:
-    return [Order(ix, durations[ix]) for ix in indexes if durations[ix] > 0]
-
-def calc_disorder(x0: array, x: array) -> int:
-    return ((x0 - x) != 0).sum()
-
-
-def get_run_time(orders: List[Order]) -> int:
-    press = Press()
-    press.run(orders)
-    return press.total_work_time
-
+def save_orders(outfile: str, best_time: int, best_sequence: List[List[Order]])-> None:
+    with open(outfile, "w") as out:
+        print(f"BestTime = {best_time}", file=out)
+        for i, seq in enumerate(best_sequence):
+            print(i, "-"*50, file=out)
+            for order in seq:
+                print(order, file=out)
+    return
 
 @click.command()
 @click.option(
-    "--num-orders", default=13, type=int, help="Number of orders to consider."
+    "--num-orders", type=int, help="Number of orders to consider."
 )
-def main(num_orders):
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    orders_durations = get_orders()
+@click.option(
+    "--strategy",
+    type=click.Choice(["do_short_order", "check_next_order"], case_sensitive=False),
+    required=True,
+    help="Strategy how to deal with current orders under process.",
+)
+@click.option(
+    "--batchsize", default=1000000, type=int, help="Batch size for paralell computation."
+)
+def main(num_orders, strategy, batchsize):
+    outfile = "../result/"
+    time_start = datetime.datetime.now()
+    print(time_start.strftime("%Y-%m-%d %H:%M:%S"))
+    orders = get_orders(num_orders)
+    
+    if strategy == "do_short_order":
+        work_strategy = DoShortOrderAndStopStrategy()
+    if strategy == "check_next_order":
+        work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
+    
+    print("--> ", orders)
+    best_time, best_sequence = brute_force_optimize(orders, work_strategy, batchsize)
 
-    orders_indexes = list(orders_durations.keys())
-    orders_indexes.sort(key=lambda x: orders_durations[x], reverse=True)
-    zero_entropy_orders_set = orders_indexes[:num_orders]
-    orders = get_orders_list(zero_entropy_orders_set, orders_durations)
-    zero_entropy_time = get_run_time(orders)
-
-    print(f"entropy0 = {zero_entropy_orders_set}, time = {zero_entropy_time}")
-
-    current_min_set = [zero_entropy_orders_set]
-    current_min_time = zero_entropy_time
-    for perm in permutations(zero_entropy_orders_set):
-        perm_time = get_run_time(get_orders_list(perm, orders_durations))
-        # entropy = calc_disorder(array(zero_entropy_orders_set), array(perm))
-        if perm_time == current_min_time:
-            current_min_set.append(perm)
-        elif perm_time < current_min_time:
-            # TODO: add output for std here
-            current_min_time = perm_time
-            current_min_set = [perm]
-        # print(perm, entropy, perm_time)
-    print(f"min time = {current_min_time}")
-    print(f"lenght of min orders set = {len(current_min_set)}")
-    print(current_min_set[0])
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    outfile += strategy + ".txt"
+    save_orders(outfile, best_time, best_sequence)
+    
+    print(f"best time = {best_time}")
+    print(f"length of min orders set = {len(best_sequence)}")
+    print(best_sequence[0])
+    time_end = datetime.datetime.now()
+    print(time_end.strftime("%Y-%m-%d %H:%M:%S"))
+    print(time_end - time_start)
+    return
 
 
 if __name__ == "__main__":
