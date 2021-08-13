@@ -11,7 +11,7 @@ MATRIXNAME = "MatrixName"
 
 class OrdersReader:
     def __init__(self, filename: str, nrows: int = None):
-        self.orders:DataFrame = read_excel(filename, nrows=nrows)
+        self.orders: DataFrame = read_excel(filename, nrows=nrows)
 
     def get_orders_number(self) -> int:
         return self.orders.shape[0]
