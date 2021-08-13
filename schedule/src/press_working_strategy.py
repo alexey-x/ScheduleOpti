@@ -7,13 +7,15 @@ class WorkingStrategy(ABC):
     """Strategy decides how the orders should be processed."""
 
     @abstractmethod
-    def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
+    def get_worktime_till_stop(self) -> int:
         pass
 
 class DoShortOrderAndStopStrategy(WorkingStrategy):
     """After the shortest order is done change matrix for the next order."""
 
     def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
+        if len(order_durations) == 0:
+            return 0
         if orders_left == 0:
             return max(order_durations)
         else:
@@ -28,6 +30,8 @@ class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
     time_treshold: int
     
     def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
+        if len(order_durations) == 0:
+            return 0
         if orders_left == 0:
             return max(order_durations)
         else:
