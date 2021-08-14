@@ -54,7 +54,7 @@ def save_orders(outfile: str, best_time: int, best_sequence: List[List[Order]])-
 def main(num_orders, strategy, batchsize):
     outfile = "../result/"
     time_start = datetime.datetime.now()
-    print(time_start.strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Time start = {time_start.strftime('%Y-%m-%d %H:%M:%S')}")
     orders = get_orders(num_orders)
     
     if strategy == "do_short_order":
@@ -72,8 +72,8 @@ def main(num_orders, strategy, batchsize):
     print(f"length of min orders set = {len(best_sequence)}")
     print(best_sequence[0])
     time_end = datetime.datetime.now()
-    print(time_end.strftime("%Y-%m-%d %H:%M:%S"))
-    print(time_end - time_start)
+    print(f"Time end = {time_end.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Total time = {time_end - time_start}")
     return
 
 
