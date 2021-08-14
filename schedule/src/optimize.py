@@ -2,12 +2,12 @@ from typing import List, Tuple
 from copy import deepcopy
 from multiprocessing import Pool
 
-from itertools import permutations, islice
+from itertools import islice
 
-from src.press import Press
+from src.press import Press, NSLOTS
 from src.order import Order
 from src.press_working_strategy import WorkingStrategy
-
+from src.sub_tasks import get_permutations
 
 def get_run_time(
     orders: List[Order], strategy: WorkingStrategy
@@ -20,7 +20,7 @@ def get_run_time(
 def brute_force_optimize(
     sequence: List[Order], strategy: WorkingStrategy, batchsize: int
 ) -> Tuple[int, List[List[Order]]]:
-    all_perm = permutations(sequence)
+    all_perm = get_permutations(sequence, NSLOTS)
     best_time = sum((order.order_duration for order in sequence))
     best_sequence = []
     while True:
