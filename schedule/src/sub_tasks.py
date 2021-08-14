@@ -28,14 +28,9 @@ def get_permutations(sequence: Iterable, n: int): # returns generator of lists
     filled_slots, rest  = divmod(seq_length, n)
     # combinations when all slots are full 
     # time of the task is max duration of single orders
-    comb_all_slots = []
-    for k in combinations(sequence, n):
-        comb_all_slots.append(k)
-
-    # combinations of rests 
-    comb_rest = []
-    for k in combinations(sequence, rest):
-        comb_rest.append(k)
+    
+    comb_all_slots = combinations(sequence, n)
+    comb_rest = list(combinations(sequence, rest))
 
     for seq in combinations(comb_all_slots, filled_slots):
         f1 = list(flatten(seq))
