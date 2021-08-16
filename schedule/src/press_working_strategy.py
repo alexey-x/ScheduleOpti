@@ -10,7 +10,7 @@ class WorkingStrategy(ABC):
     def get_worktime_till_stop(self) -> int:
         pass
 
-class DoLongestOrder(WorkingStrategy):
+class DoLongestOrderStrategy(WorkingStrategy):
     """Do the longest order from all slots. After that put new orders.
     There is very fast and simple solution for this strategy.
     See (jupyter/05_brute_force_simple).

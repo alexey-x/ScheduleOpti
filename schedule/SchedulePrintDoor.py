@@ -7,7 +7,7 @@ from src.press import THEAT
 from src.orders_reader import OrdersReader
 from src.press_working_strategy import DoShortOrderAndStopStrategy
 from src.press_working_strategy import CheckNextOrderBeforeStopStrategy
-from src.press_working_strategy import DoLongestOrder
+from src.press_working_strategy import DoLongestOrderStrategy
 
 
 from src.order import Order
@@ -63,7 +63,7 @@ def main(num_orders, strategy, batchsize):
     if strategy == "check_next_order":
         work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
     if strategy == "do_long_order":
-        work_strategy = DoLongestOrder()
+        work_strategy = DoLongestOrderStrategy()
     
     print("--> ", orders)
     best_time, best_sequence = brute_force_optimize(orders, work_strategy, batchsize)
