@@ -7,6 +7,7 @@ from src.press import THEAT
 from src.orders_reader import OrdersReader
 from src.press_working_strategy import DoShortOrderAndStopStrategy
 from src.press_working_strategy import CheckNextOrderBeforeStopStrategy
+from src.press_working_strategy import DoLongestOrder
 
 
 from src.order import Order
@@ -44,7 +45,7 @@ def save_orders(outfile: str, best_time: int, best_sequence: List[List[Order]])-
 )
 @click.option(
     "--strategy",
-    type=click.Choice(["do_short_order", "check_next_order"], case_sensitive=False),
+    type=click.Choice(["do_short_order", "check_next_order", "do_long_order"], case_sensitive=False),
     required=True,
     help="Strategy how to deal with current orders under process.",
 )
@@ -61,6 +62,8 @@ def main(num_orders, strategy, batchsize):
         work_strategy = DoShortOrderAndStopStrategy()
     if strategy == "check_next_order":
         work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
+    if strategy == "do_long_order":
+        work_strategy = DoLongestOrder()
     
     print("--> ", orders)
     best_time, best_sequence = brute_force_optimize(orders, work_strategy, batchsize)

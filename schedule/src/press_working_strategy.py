@@ -10,6 +10,15 @@ class WorkingStrategy(ABC):
     def get_worktime_till_stop(self) -> int:
         pass
 
+class DoLongestOrder(WorkingStrategy):
+    """Do the longest order from all slots. After that put new orders.
+    There is very fast and simple solution for this strategy.
+    See (jupyter/05_brute_force_simple).
+    """
+    def get_worktime_till_stop(
+        self, orders_left: int, order_durations: List[int]
+    ) -> int:
+        return max(order_durations)
 
 class DoShortOrderAndStopStrategy(WorkingStrategy):
     """After the shortest order is done change matrix for the next order."""
@@ -25,7 +34,7 @@ class DoShortOrderAndStopStrategy(WorkingStrategy):
 
 @dataclass
 class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
-    """Check if after the shortest order is done and heating starts other order finishes.
+    """Check if after the shortest order is done and new order is heating another order finishes.
     If yes, do not start immediately but wait for the other order finishes.  
     """
 
