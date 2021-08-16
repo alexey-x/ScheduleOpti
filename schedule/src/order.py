@@ -22,4 +22,4 @@ class Order:
         return f"Order({self.order_index}: {self.order_duration}, heated={self.heated})"
 
     def __str__(self):
-        return f"{self.get_order_index()}, {self.order_name}: {self.order_duration}"
+        return f"{self.order_name} -> {self.order_duration if self.order_duration != 0 else 'done'}"

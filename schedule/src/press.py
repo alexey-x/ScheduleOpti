@@ -63,23 +63,19 @@ class Press:
                 self.put_order_to_slot(i, order)
 
             if verbose:
-                print("Orders are in the slots. Change time counted.")
                 print(f"cycle = {cycle_number}")
-                print(self.__repr__())
+                self.print_state("After put orders to slots.")
 
             self.process_orders(THEAT)
             if verbose:
-                print("Orders after heating.")
-                print(self.__repr__())
+                self.print_state("After heating.")
 
             worktime_till_stop = self.working_strategy.get_worktime_till_stop(
                 len(orders), self.get_durations()
             )
             self.process_orders(worktime_till_stop)
             if verbose:
-                print("Orders after processing.")
-                print(f"Processing time = {worktime_till_stop}")
-                print(self.__repr__())
+                self.print_state(f"After processing. Processing time = {worktime_till_stop}.")
 
         if verbose:
             print("." * 50)
@@ -87,11 +83,12 @@ class Press:
             print(f"Total time = {self.total_work_time}")
             print("... End.")
 
-    def __repr__(self):
-        s = f"Total time: {self.total_work_time}\n"
-        for i in range(NSLOTS):
-            s += f"{i}: {self.slot[i].__repr__()}, "
-        return s + "\n"
+    def print_state(self, msg: str) -> None:
+        print(f"Time = {self.total_work_time}. {msg}")
+        s = ""
+        for order in self.slot:
+            s += f"{order.__str__()} | "
+        print(s + "\n")
 
 
 if __name__ == "__main__":
