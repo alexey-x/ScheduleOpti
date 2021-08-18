@@ -7,7 +7,7 @@ class WorkingStrategy(ABC):
     """Strategy decides how the orders should be processed."""
 
     @abstractmethod
-    def get_worktime_till_stop(self) -> int:
+    def get_worktime_till_stop(self, orders_left: int, order_durations: List[int]) -> int:
         pass
 
 class DoLongestOrderStrategy(WorkingStrategy):
