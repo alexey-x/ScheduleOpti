@@ -1,6 +1,6 @@
 import pulp as plp
 
-from data_processor import DataProcessor
+from . data_processor import DataProcessor
 
 
 class LinProgMaker:

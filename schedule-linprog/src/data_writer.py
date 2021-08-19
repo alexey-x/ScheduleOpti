@@ -1,7 +1,7 @@
 import pandas as pd
 from pulp.pulp import value
 
-from lin_prog_maker import LinProgMaker
+from . lin_prog_maker import LinProgMaker
 
 
 class DataWriter:

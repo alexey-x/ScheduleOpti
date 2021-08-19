@@ -1,5 +1,5 @@
 from typing import Dict, List
-from const import Const
+from . const import Const
 
 
 class DataProcessor:
