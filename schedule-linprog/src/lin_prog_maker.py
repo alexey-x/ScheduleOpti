@@ -103,7 +103,7 @@ class LinProgMaker:
 
     def ct_time_between_steps(self) -> None:
         init_time = self.Tchange + self.Theat
-        self.prob += self.Ts[0] == 0
+        self.prob += self.Ts[1] == 0
         for k in self.time_intervals:
             for j in self.slots:
                 self.prob += self.Ts[k + 1] - self.Ts[k] == plp.lpSum(
