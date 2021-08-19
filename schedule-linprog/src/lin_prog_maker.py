@@ -20,6 +20,7 @@ class LinProgMaker:
         self.ct_start_order()
         self.ct_order_duration_in_time_interval()
         self.ct_process_order_in_one_slot()
+        self.ct_one_order_per_slot()
         self.ct_same_slot_for_consecutive_steps()
 
         self.prob.solve(plp.PULP_CBC_CMD(msg=True))
@@ -137,6 +138,11 @@ class LinProgMaker:
             for k in self.time_intervals:
                 self.prob += plp.lpSum(self.a[i, j, k] for j in self.slots) <= 1
 
+    def ct_one_order_per_slot(self):
+        for j in self.slots:
+            for k in self.time_intervals:
+                self.prob += plp.lpSum(self.a[i, j, k] for i in self.orders) <= 1
+
     def ct_same_slot_for_consecutive_steps(self) -> None:
         for i in self.orders:
             for k in self.time_intervals_exclude_last:
@@ -145,3 +151,7 @@ class LinProgMaker:
                         if j1 == j2:
                             continue
                         self.prob += self.a[i, j1, k] + self.a[i, j2, k + 1] <= 1
+
+    def write(self, filename: str = "model.lp") -> None:
+        self.prob.writeLP(filename)
+
