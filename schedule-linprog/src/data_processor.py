@@ -23,11 +23,5 @@ class DataProcessor:
         return self.const.THEAT
 
     def get_time_steps(self) -> List[int]:
-        time_steps_number = len(self.orders) - self.const.NSLOTS
+        time_steps_number = max(2, len(self.orders) - 1)
         return [i for i in range(1, time_steps_number + 1)]
-
-    def get_time_intervals(self) -> List[int]:
-        return self.get_time_steps()[:-1]
-
-    def get_last_time_step(self) -> int:
-        return self.get_time_steps()[-1]
