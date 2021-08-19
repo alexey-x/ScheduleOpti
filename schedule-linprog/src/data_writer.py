@@ -24,11 +24,12 @@ class DataWriter:
         return result
 
     def save(self) -> None:
-
-        self.save_work().to_excel(self.writer, sheet_name="Work", index=False)
-
-        self.writer.save()
+        try:
+            self.save_work().to_excel(self.writer, sheet_name="Work", index=False)
+            self.writer.save()
+        except PermissionError:
+            print("Close excel file!")
         self.writer.close()
 
-    def write_lp_model(self, file_name="model.lp") -> None:
-        self.task.write(file_name)
+    def write_lp_model(self, filename="model.lp") -> None:
+        self.task.write(filename)
