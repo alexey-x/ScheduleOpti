@@ -18,6 +18,8 @@ def run(orders: Dict[int, int], outfile: str) -> None:
     writer = DataWriter(task, outfile)
     writer.save()
     writer.write_lp_model()
+    writer.print_additional_info()
+
 
 def get_orders(num_orders: int, infile: str) -> Dict[int, int]:
     orders = OrdersReader(infile, num_orders)

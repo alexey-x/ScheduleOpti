@@ -1,6 +1,6 @@
 import pulp as plp
 
-from . data_processor import DataProcessor
+from .data_processor import DataProcessor
 
 
 class LinProgMaker:
@@ -23,7 +23,7 @@ class LinProgMaker:
         self.ct_one_order_per_slot()
         self.ct_same_slot_for_consecutive_steps()
 
-        self.prob.solve(plp.PULP_CBC_CMD(msg=True))
+        self.prob.solve(plp.PULP_CBC_CMD(msg=True, fracGap=0.005))
 
         self.status = plp.LpStatus[self.prob.status]
         self.objective_value = plp.value(self.prob.objective)
@@ -40,10 +40,11 @@ class LinProgMaker:
         self.durations = processor.get_durations()
         self.Tchange = processor.get_changing_time()
         self.Theat = processor.get_heating_time()
+        self.bigDuration = max([i for i in self.durations.values()])
 
     def init_decision_variables(self) -> None:
         self.Ts = plp.LpVariable.dicts(
-            "Ts", [k for k in self.time_steps], cat=plp.LpContinuous,
+            "Ts", [k for k in self.time_steps], cat=plp.LpInteger, lowBound=0
         )
 
         self.s = plp.LpVariable.dicts(
@@ -76,7 +77,8 @@ class LinProgMaker:
                 for j in self.slots
                 for k in self.time_intervals
             ],
-            cat=plp.LpContinuous,
+            cat=plp.LpInteger,
+            lowBound=0,
         )
 
         self.x = plp.LpVariable.dicts(
@@ -87,7 +89,8 @@ class LinProgMaker:
                 for j in self.slots
                 for k in self.time_intervals
             ],
-            cat=plp.LpContinuous,
+            cat=plp.LpInteger,
+            lowBound=0,
         )
 
     def obective(self) -> None:
@@ -132,6 +135,7 @@ class LinProgMaker:
             for j in self.slots:
                 for k in self.time_intervals:
                     self.prob += self.t[i, j, k] <= self.durations[i] * self.a[i, j, k]
+                    #self.prob += self.x[i, j, k] <= self.durations[i] * (self.s[i ,j, k] + self.a[i, j, k])
 
     def ct_process_order_in_one_slot(self) -> None:
         for i in self.orders:
@@ -154,4 +158,3 @@ class LinProgMaker:
 
     def write(self, filename: str = "model.lp") -> None:
         self.prob.writeLP(filename)
-
