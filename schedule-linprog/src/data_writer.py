@@ -13,14 +13,16 @@ class DataWriter:
     def save_work(self) -> DataFrame:
         cols = [
             "TimeStep",
-            "StartTime",
             "Slot",
             "Order",
             "Duration",
+            "StepStartTime",
+            "WorkStart",
+            "WorkEnd",
             "WorkTime",
             "IdleTime",
             "s",
-            "a"
+            "a",
         ]
         result = DataFrame(columns=cols)
         row_number = 0
@@ -28,22 +30,24 @@ class DataWriter:
             for j in self.task.slots:
                 for i in self.task.orders:
                     if self.task.a[i, j, k].value() == 0:
-                        continue
+                        pass#continue
                     result.loc[row_number, cols] = (
                         k,
-                        self.task.Ts[k].value(),
                         j,
                         i,
                         self.task.durations[i],
-                        self.task.t[i, j, k].value(),
-                        max([self.task.x[i1, j, k].value() for i1 in self.task.orders]),
+                        self.task.Ts[k].value(),
+                        self.task.t1[i, j, k].value(),
+                        self.task.t2[i, j, k].value(),
+                        self.task.t2[i, j, k].value() - self.task.t1[i, j, k].value(),
+                        self.task.x[i, j, k].value(),
                         self.task.s[i, j, k].value(),
                         self.task.a[i, j, k].value(),
                     )
                     row_number += 1
         # add last time point - actually the right way to call it is "StopTime"
         k = self.task.last_time_step
-        result.loc[row_number, ["TimeStep", "StartTime"]] = k, self.task.Ts[k].value()
+        result.loc[row_number, ["TimeStep", "StepStartTime"]] = k, self.task.Ts[k].value()
         return result
 
     def save(self) -> None:

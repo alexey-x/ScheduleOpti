@@ -15,12 +15,16 @@ class LinProgMaker:
         self.obective()
 
         self.ct_any_order_starts_once()
+        self.ct_first_step()
+        self.ct_last_step()  # TODO Improve calcuation
+        self.ct_connect_start_step_with_next_step()
         self.ct_time_between_steps()
+        self.ct_start_time_inside_step()
         self.ct_orders_duration()
         self.ct_start_order()
         self.ct_order_duration_in_time_interval()
         self.ct_process_order_in_one_slot()
-        self.ct_one_order_per_slot()
+        self.ct_one_order_per_slot_at_one_step()
         self.ct_same_slot_for_consecutive_steps()
 
         self.prob.solve(plp.PULP_CBC_CMD(msg=True, fracGap=0.005))
@@ -40,7 +44,9 @@ class LinProgMaker:
         self.durations = processor.get_durations()
         self.Tchange = processor.get_changing_time()
         self.Theat = processor.get_heating_time()
-        self.bigDuration = max([i for i in self.durations.values()])
+
+        self.minDuration = min([i for i in self.durations.values()])
+        self.min_working_time = processor.get_min_working_time()
 
     def init_decision_variables(self) -> None:
         self.Ts = plp.LpVariable.dicts(
@@ -69,8 +75,20 @@ class LinProgMaker:
             cat=plp.LpBinary,
         )
 
-        self.t = plp.LpVariable.dicts(
-            "t",
+        self.t1 = plp.LpVariable.dicts(
+            "t1",
+            [
+                (i, j, k)
+                for i in self.orders
+                for j in self.slots
+                for k in self.time_intervals
+            ],
+            cat=plp.LpInteger,
+            lowBound=0,
+        )
+
+        self.t2 = plp.LpVariable.dicts(
+            "t2",
             [
                 (i, j, k)
                 for i in self.orders
@@ -96,32 +114,69 @@ class LinProgMaker:
     def obective(self) -> None:
         self.prob += self.Ts[self.last_time_step]
 
+    def ct_first_step(self) -> None:
+        self.prob += self.Ts[1] == 0
+
+    def ct_last_step(self) -> None:
+        self.prob += self.Ts[self.last_time_step] >= self.min_working_time
+
     def ct_any_order_starts_once(self) -> None:
         for i in self.orders:
             self.prob += (
                 plp.lpSum(
                     self.s[i, j, k] for j in self.slots for k in self.time_intervals
                 )
-                == 1
+                == 1,
+                f"single start {i}",
             )
 
-    def ct_time_between_steps(self) -> None:
-        init_time = self.Tchange + self.Theat
-        self.prob += self.Ts[1] == 0
-        for k in self.time_intervals:
+    def ct_connect_start_step_with_next_step(self):
+        for i in self.orders:
             for j in self.slots:
-                self.prob += self.Ts[k + 1] - self.Ts[k] == plp.lpSum(
-                    init_time * self.s[i, j, k] + self.t[i, j, k] + self.x[i, j, k]
-                    for i in self.orders
-                )
+                for k in self.time_intervals_exclude_last:
+                    self.prob += (
+                        self.s[i, j, k + 1] - self.s[i, j, k]
+                        <= self.a[i, j, k + 1] - self.a[i, j, k]
+                    )
+
+    def ct_time_between_steps(self) -> None:
+        for i in self.orders:
+            for j in self.slots:
+                for k in self.time_intervals:
+                    self.prob += (
+                        (
+                            self.Ts[k + 1] - self.Ts[k]
+                            == self.Tchange * self.a[i, j, k]
+                            + self.Theat * self.s[i, j, k]
+                            + self.t2[i, j, k]
+                            - self.t1[i, j, k]
+                            + self.x[i, j, k]
+                        ),
+                        f"time-between {i}, {j}, {k}",
+                    )
+
+    def ct_start_time_inside_step(self) -> None:
+        for i in self.orders:
+            for j in self.slots:
+                for k in self.time_intervals:
+                    self.prob += (
+                        self.t1[i, j, k]
+                        >= self.Ts[k]
+                        + self.Tchange * self.a[i, j, k]
+                        + self.Theat * self.s[i, j, k],
+                        f"t1-start {i}, {j}, {k}",
+                    )
 
     def ct_orders_duration(self) -> None:
         for i in self.orders:
             self.prob += (
                 plp.lpSum(
-                    self.t[i, j, k] for j in self.slots for k in self.time_intervals
+                    self.t2[i, j, k] - self.t1[i, j, k]
+                    for j in self.slots
+                    for k in self.time_intervals
                 )
-                == self.durations[i]
+                == self.durations[i],
+                f"duration {i}",
             )
 
     def ct_start_order(self) -> None:
@@ -134,15 +189,17 @@ class LinProgMaker:
         for i in self.orders:
             for j in self.slots:
                 for k in self.time_intervals:
-                    self.prob += self.t[i, j, k] <= self.durations[i] * self.a[i, j, k]
-                    #self.prob += self.x[i, j, k] <= self.durations[i] * (self.s[i ,j, k] + self.a[i, j, k])
+                    self.prob += (
+                        self.t2[i, j, k] - self.t1[i, j, k]
+                        <= self.durations[i] * self.a[i, j, k]
+                    )
 
     def ct_process_order_in_one_slot(self) -> None:
         for i in self.orders:
             for k in self.time_intervals:
                 self.prob += plp.lpSum(self.a[i, j, k] for j in self.slots) <= 1
 
-    def ct_one_order_per_slot(self):
+    def ct_one_order_per_slot_at_one_step(self):
         for j in self.slots:
             for k in self.time_intervals:
                 self.prob += plp.lpSum(self.a[i, j, k] for i in self.orders) <= 1
