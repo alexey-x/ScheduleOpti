@@ -11,7 +11,9 @@ from src.const import Const
 
 
 def run(orders: Dict[int, int], outfile: str) -> None:
-
+    if not orders:
+        print("No orders to process")
+        return
     processor = DataProcessor(orders, Const())
     task = LinProgMaker(processor)
     task.solve()
