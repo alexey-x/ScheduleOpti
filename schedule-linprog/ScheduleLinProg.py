@@ -38,7 +38,6 @@ def main(num_orders):
     print(f"Time start = {time_start.strftime('%Y-%m-%d %H:%M:%S')}")
 
     orders = get_orders(num_orders, infile)
-    print(orders)
     run(orders, outfile)
 
     time_end = datetime.datetime.now()
