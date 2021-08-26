@@ -32,7 +32,7 @@ def get_orders(num_orders: int, infile: str) -> Dict[int, int]:
 @click.option("--num-orders", type=int, help="Number of orders to consider.")
 def main(num_orders):
     infile = "../data/orders.xlsx"
-    outfile = "../result/lin_prog_out.xlsx"
+    outfile = f"../result/lin-prog-{num_orders}-orders.xlsx"
 
     time_start = datetime.datetime.now()
     print(f"Time start = {time_start.strftime('%Y-%m-%d %H:%M:%S')}")
