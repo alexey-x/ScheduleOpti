@@ -10,11 +10,11 @@ from src.data_writer import DataWriter
 from src.const import Const
 
 
-def run(orders: Dict[int, int], outfile: str) -> None:
+def run(num_time_interval: int, orders: Dict[int, int], outfile: str) -> None:
     if not orders:
         print("No orders to process.")
         return
-    processor = DataProcessor(orders, Const())
+    processor = DataProcessor(num_time_interval, orders, Const())
     task = LinProgMaker(processor)
     task.solve()
     writer = DataWriter(task, outfile)
@@ -30,7 +30,8 @@ def get_orders(num_orders: int, infile: str) -> Dict[int, int]:
 
 @click.command()
 @click.option("--num-orders", type=int, help="Number of orders to consider.")
-def main(num_orders):
+@click.option("--num-time-interval", type=int, help="Number of work time intervals.")
+def main(num_orders, num_time_interval):
     infile = "../data/orders.xlsx"
     outfile = f"../result/lin-prog-{num_orders}-orders.xlsx"
 
@@ -38,7 +39,7 @@ def main(num_orders):
     print(f"Time start = {time_start.strftime('%Y-%m-%d %H:%M:%S')}")
 
     orders = get_orders(num_orders, infile)
-    run(orders, outfile)
+    run(num_time_interval, orders, outfile)
 
     time_end = datetime.datetime.now()
     print(f"Time end = {time_end.strftime('%Y-%m-%d %H:%M:%S')}")

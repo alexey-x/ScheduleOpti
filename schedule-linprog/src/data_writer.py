@@ -63,7 +63,7 @@ class DataWriter:
 
     def print_additional_info(self) -> None:
         print(f"Task status = {self.task.status}")
-        print(f"Objective value = {self.task.objective_value}")
+        print(f"Objective value = {self.task.objective_value}\n\n")
         print("Parameters used:")
         print(f"Number of time steps = {self.task.time_steps}")
         print(f"Minimal work time = {self.task.min_working_time}")
