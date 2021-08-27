@@ -16,8 +16,9 @@ class LinProgMaker:
 
         self.ct_any_order_starts_once()
         self.ct_first_step()
-        self.ct_last_step()  # TODO Improve calcuation
+        self.ct_last_step()
         self.ct_connect_start_step_with_next_step()
+        self.ct_no_stops_if_started()
         self.ct_time_between_steps()
         self.ct_start_time_inside_step()
         self.ct_orders_duration()
@@ -27,7 +28,7 @@ class LinProgMaker:
         self.ct_one_order_per_slot_at_one_step()
         self.ct_same_slot_for_consecutive_steps()
 
-        self.prob.solve(plp.PULP_CBC_CMD(msg=True, fracGap=0.005))
+        self.prob.solve(plp.PULP_CBC_CMD(msg=True, gapRel=0.005, timeLimit=600))
 
         self.status = plp.LpStatus[self.prob.status]
         self.objective_value = plp.value(self.prob.objective)
@@ -45,7 +46,6 @@ class LinProgMaker:
         self.Tchange = processor.get_changing_time()
         self.Theat = processor.get_heating_time()
 
-        self.minDuration = min([i for i in self.durations.values()])
         self.min_working_time = processor.get_min_working_time()
 
     def init_decision_variables(self) -> None:
@@ -130,7 +130,7 @@ class LinProgMaker:
                 f"single start {i}",
             )
 
-    def ct_connect_start_step_with_next_step(self):
+    def ct_connect_start_step_with_next_step(self) -> None:
         for i in self.orders:
             for j in self.slots:
                 for k in self.time_intervals_exclude_last:
@@ -138,6 +138,19 @@ class LinProgMaker:
                         self.s[i, j, k + 1] - self.s[i, j, k]
                         <= self.a[i, j, k + 1] - self.a[i, j, k]
                     )
+
+    def ct_no_stops_if_started(self) -> None:
+        """ \forall i, j, k_1, k_2: k_2 > k_1
+        k_2\times a_{ijk_1} \ge k_1\times(a_{ijk_2} - s_{ijk_2})
+        """
+        for i in self.orders:
+            for j in self.slots:
+                for k1 in self.time_intervals:
+                    for k2 in self.time_intervals:
+                        if k2 > k1:
+                            self.prob += k2 * self.a[i, j, k1] >= k1 * (
+                                self.a[i, j, k2] - self.s[i, j, k2]
+                            )
 
     def ct_time_between_steps(self) -> None:
         for i in self.orders:
@@ -154,6 +167,7 @@ class LinProgMaker:
                         ),
                         f"time-between {i}, {j}, {k}",
                     )
+                    self.prob += self.t1[i, j, k] <= self.t2[i, j, k]
 
     def ct_start_time_inside_step(self) -> None:
         for i in self.orders:
