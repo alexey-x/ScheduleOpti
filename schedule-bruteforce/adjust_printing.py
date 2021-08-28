@@ -37,8 +37,10 @@ if __name__ == "__main__":
         Order(12, 38, "Октава"),
     ]
 
-    # press_work_strategy = DoShortOrderAndStopStrategy()
+    #press_work_strategy = DoShortOrderAndStopStrategy()
     #press_work_strategy = DoLongestOrderStrategy()
     press_work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
     press = Press(press_work_strategy)
     press.run(deepcopy(orders), verbose=True)
+    out_excel_file = "../result/test_press_out.xlsx"
+    press.result.to_excel(out_excel_file, sheet_name="WorkProcess", index=False)
