@@ -11,7 +11,7 @@ class WorkingStrategy(ABC):
         pass
 
 class DoLongestOrderStrategy(WorkingStrategy):
-    """Do the longest order from all slots. After that put new orders.
+    """Do the longest order from all slots and after that put new orders.
     There is very fast and simple solution for this strategy.
     See (jupyter/05_brute_force_simple).
     """
@@ -34,7 +34,7 @@ class DoShortOrderAndStopStrategy(WorkingStrategy):
 
 @dataclass
 class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
-    """Check if after the shortest order is done and new order is heating another order finishes.
+    """Check if after the shortest order is done and the new order is heating another order finishes.
     If yes, do not start immediately but wait for the other order finishes.  
     """
 
