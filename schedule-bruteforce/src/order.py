@@ -1,25 +1,32 @@
 
 class Order:
     def __init__(self, order_index: int, order_duration: int, order_name: str):
-        self.order_index = order_index
-        self.order_duration = order_duration
-        self.order_name = order_name
-        self.heated = False
+        self._order_index = order_index
+        self._order_duration = order_duration
+        self._order_name = order_name
+        self._order_length = order_duration
+        self._heated = False
 
-    def get_order_index(self):
-        return self.order_index
+    def get_order_index(self) -> int:
+        return self._order_index
 
-    def get_order_duration(self):
-        return self.order_duration
+    def get_order_duration(self) -> int:
+        return self._order_duration
+
+    def get_order_length(self) -> int:
+        return self._order_length
+
+    def get_order_name(self) -> str:
+        return self._order_name
 
     def process_order(self, order_process_time: int) -> None:
-        if self.heated:
-            self.order_duration = max(0, self.order_duration - order_process_time)
+        if self._heated:
+            self._order_duration = max(0, self._order_duration - order_process_time)
         else:
-            self.heated = True
+            self._heated = True
 
     def __repr__(self):
-        return f"Order({self.order_index}: {self.order_duration}, heated={self.heated})"
+        return f"Order({self._order_index}: {self._order_duration}, heated={self._heated})"
 
     def __str__(self):
-        return f"{self.order_name} -> {self.order_duration if self.order_duration != 0 else 'done'}"
+        return f"{self._order_name} -> {self._order_duration if self._order_duration != 0 else 'done'}"
