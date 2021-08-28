@@ -28,7 +28,7 @@ class LinProgMaker:
         self.ct_one_order_per_slot_at_one_step()
         self.ct_same_slot_for_consecutive_steps()
 
-        self.prob.solve(plp.PULP_CBC_CMD(msg=True, gapRel=0.005, timeLimit=600))
+        self.prob.solve(plp.PULP_CBC_CMD(msg=True, gapRel=0.005, timeLimit=300))
 
         self.status = plp.LpStatus[self.prob.status]
         self.objective_value = plp.value(self.prob.objective)
