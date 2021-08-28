@@ -21,7 +21,7 @@ def brute_force_optimize(
     sequence: List[Order], strategy: WorkingStrategy, batchsize: int
 ) -> Tuple[int, List[List[Order]]]:
     all_perm = get_permutations(sequence, NSLOTS)
-    best_time = sum((order.order_duration for order in sequence))
+    best_time = sum((order.get_order_duration() for order in sequence))
     best_sequence = []
     while True:
         pool = Pool()
