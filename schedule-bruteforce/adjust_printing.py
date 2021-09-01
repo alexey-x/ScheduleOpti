@@ -1,26 +1,14 @@
-import sys
+from copy import deepcopy
 
-sys.path.append(".")
+from src.press_working_strategy import DoShortOrderAndStopStrategy
+from src.press_working_strategy import CheckNextOrderBeforeStopStrategy
+from src.press_working_strategy import DoLongestOrderStrategy
 
-from typing import List
 
 from src.order import Order
-from src.press_working_strategy import WorkingStrategy
-from src.press import Press, NSLOTS
+from src.press import Press, THEAT
 
-
-NSLOTS = 3
-TCHANGE = 20
-THEAT = 40
-
-
-if __name__ == "__main__":
-    from copy import deepcopy
-
-    from src.press_working_strategy import DoShortOrderAndStopStrategy
-    from src.press_working_strategy import CheckNextOrderBeforeStopStrategy
-    from src.press_working_strategy import DoLongestOrderStrategy
-
+def main():
     orders = [
         Order(0, 734, "Орион - 600"),
         Order(1, 722, "Орион - 700"),
@@ -40,7 +28,11 @@ if __name__ == "__main__":
     #press_work_strategy = DoShortOrderAndStopStrategy()
     #press_work_strategy = DoLongestOrderStrategy()
     press_work_strategy = CheckNextOrderBeforeStopStrategy(THEAT)
-    press = Press(press_work_strategy)
-    press.run(deepcopy(orders), verbose=True)
-    out_excel_file = "../result/test_press_out.xlsx"
-    press.result.to_excel(out_excel_file, sheet_name="WorkProcess", index=False)
+    press = Press(press_work_strategy, verbose=True)
+    press.run(deepcopy(orders))
+    #out_excel_file = "../result/test_press_out.xlsx"
+    #press.result.to_excel(out_excel_file, sheet_name="WorkProcess", index=False)
+
+
+if __name__ == "__main__":
+    main()
