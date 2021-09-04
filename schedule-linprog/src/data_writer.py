@@ -45,7 +45,7 @@ class DataWriter:
                         self.task.a[i, j, k].value(),
                     )
                     row_number += 1
-        # add last time point - actually the right way to call it is "StopTime"
+        # add last time point - or better "StopTime"
         k = self.task.last_time_step
         result.loc[row_number, ["TimeStep", "StepStartTime"]] = k, self.task.Ts[k].value()
         return result
