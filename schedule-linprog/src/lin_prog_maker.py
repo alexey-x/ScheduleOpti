@@ -1,10 +1,17 @@
 import pulp as plp
+import configparser
 
 from .data_processor import DataProcessor
 
 
+CONFIGFILE = "config/config_lin_prog_maker.cfg"
+
+
 class LinProgMaker:
     def __init__(self, processor: DataProcessor):
+        self.config = configparser.ConfigParser()
+        self.config.read(CONFIGFILE)
+
         self.init_const(processor)
 
         self.prob = plp.LpProblem("ProdSchedule", plp.LpMinimize)
@@ -14,21 +21,17 @@ class LinProgMaker:
     def solve(self) -> None:
         self.obective()
 
-        self.ct_any_order_starts_once()
-        self.ct_first_step()
-        self.ct_last_step()
-        self.ct_connect_start_step_with_next_step()
-        self.ct_no_stops_if_started()
-        self.ct_time_between_steps()
-        self.ct_start_time_inside_step()
-        self.ct_orders_duration()
-        self.ct_start_order()
-        self.ct_order_duration_in_time_interval()
-        self.ct_process_order_in_one_slot()
-        self.ct_one_order_per_slot_at_one_step()
-        self.ct_same_slot_for_consecutive_steps()
+        for constrain, apply in self.config["constraints"].items():
+            if apply:
+                self.__getattribute__(constrain)()
 
-        self.prob.solve(plp.PULP_CBC_CMD(msg=True, gapRel=0.005, timeLimit=300))
+        self.prob.solve(
+            plp.PULP_CBC_CMD(
+                msg=self.config["solver"]["msg"],
+                gapRel=self.config["solver"]["gapRel"],
+                timeLimit=self.config["solver"]["timeLimit"],
+            )
+        )
 
         self.status = plp.LpStatus[self.prob.status]
         self.objective_value = plp.value(self.prob.objective)

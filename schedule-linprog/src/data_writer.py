@@ -68,3 +68,8 @@ class DataWriter:
         print(f"Number of time steps = {self.task.time_steps}")
         print(f"Minimal work time = {self.task.min_working_time}")
         print(f"Orders duration = {self.task.durations}")
+        print("Linear program configuration:")
+        for section in self.task.config.sections():
+            print(f"[{section}]")
+            for par, val in self.task.config[section].items():
+                print(f"\t{par} = {val}")
