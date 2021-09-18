@@ -20,6 +20,9 @@ class DataProcessor:
     def get_changing_time(self) -> int:
         return self.const.TCHANGE
 
+    def get_orders_number(self) -> int:
+        return len(self.orders)
+
     def get_heating_time(self) -> int:
         return self.const.THEAT
 
