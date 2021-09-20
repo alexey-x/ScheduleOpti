@@ -40,7 +40,7 @@ def save_orders(
         print(f"BestTime = {best_time}", file=out)
         print(f"Cycles = {best_cycle_number}", file=out)
         for i, seq in enumerate(best_sequence):
-            order_indexes = ", ".join([str(order.get_order_index()) for order in seq])
+            order_indexes = ", ".join(str(order.get_order_index()) for order in seq)
             print(f"{i}: {order_indexes}", file=out)
 
 
