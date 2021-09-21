@@ -2,7 +2,7 @@ from pandas import ExcelWriter
 from pandas import DataFrame
 from pulp.pulp import value
 
-from .lin_prog_maker import LinProgMaker
+from .lin_prog_maker_full import LinProgMaker
 
 
 class DataWriter:
@@ -16,38 +16,35 @@ class DataWriter:
             "Slot",
             "Order",
             "Duration",
-            "StepStartTime",
-            "WorkStart",
-            "WorkEnd",
-            "WorkTime",
+            "TimeStepStartTime",
+            "TimeStepLength",
+            "OrderProcessingTime",
             "IdleTime",
             "s",
             "a",
         ]
         result = DataFrame(columns=cols)
         row_number = 0
+        ts = 0
         for k in self.task.time_intervals:
             for j in self.task.slots:
                 for i in self.task.orders:
                     if self.task.a[i, j, k].value() == 0:
-                        pass#continue
+                        continue
                     result.loc[row_number, cols] = (
                         k,
                         j,
                         i,
                         self.task.durations[i],
-                        self.task.Ts[k].value(),
-                        self.task.t1[i, j, k].value(),
-                        self.task.t2[i, j, k].value(),
-                        self.task.t2[i, j, k].value() - self.task.t1[i, j, k].value(),
-                        self.task.x[i, j, k].value(),
+                        ts,
+                        self.task.L[k].value(),
+                        self.task.t[i, j, k].value(),
+                        self.task.x[j, k].value(),
                         self.task.s[i, j, k].value(),
                         self.task.a[i, j, k].value(),
                     )
                     row_number += 1
-        # add last time point - or better "StopTime"
-        k = self.task.last_time_step
-        result.loc[row_number, ["TimeStep", "StepStartTime"]] = k, self.task.Ts[k].value()
+            ts += self.task.L[k].value()
         return result
 
     def save(self) -> None:
@@ -66,10 +63,10 @@ class DataWriter:
         print(f"Objective value = {self.task.objective_value}\n\n")
         print("Parameters used:")
         print(f"Number of time steps = {self.task.time_steps}")
-        print(f"Minimal work time = {self.task.min_working_time}")
+        #print(f"Minimal work time = {self.task.min_working_time}")
         print(f"Orders duration = {self.task.durations}")
-        print("Linear program configuration:")
-        for section in self.task.config.sections():
-            print(f"[{section}]")
-            for par, val in self.task.config[section].items():
-                print(f"\t{par} = {val}")
+        # print("Linear program configuration:")
+        # for section in self.task.config.sections():
+        #     print(f"[{section}]")
+        #     for par, val in self.task.config[section].items():
+        #         print(f"\t{par} = {val}")

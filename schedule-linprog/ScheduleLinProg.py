@@ -50,7 +50,7 @@ def get_orders(num_orders: int, infile: str) -> Dict[int, int]:
 )
 def main(num_orders, num_time_interval, strategy):
     infile = "../data/orders.xlsx"
-    outfile = f"../result/lin-prog-{num_orders}-orders.xlsx"
+    outfile = f"../result/lin-prog-{strategy}-{num_orders}-orders-{num_time_interval}-interval.xlsx"
 
     time_start = datetime.datetime.now()
     print(f"Time start = {time_start.strftime('%Y-%m-%d %H:%M:%S')}")

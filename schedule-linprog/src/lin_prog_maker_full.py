@@ -21,9 +21,20 @@ class LinProgMaker:
     def solve(self) -> None:
         self.obective()
 
-        for constrain, apply in self.config["constraints"].items():
-            if apply:
-                self.__getattribute__(constrain)()
+        # for constrain, apply in self.config["constraints"].items():
+        #    if apply:
+        #        self.__getattribute__(constrain)()
+
+        self.ct_any_order_starts_once()
+        self.ct_connect_start_step_with_next_step()
+        self.ct_no_stops_if_started()
+        self.ct_time_between_steps()
+        self.ct_orders_duration()
+        self.ct_start_order()
+        self.ct_duration_inside_time_interval()
+        self.ct_one_order_per_slot_at_one_step()
+        self.ct_process_order_in_one_slot()
+        self.ct_same_slot_for_consecutive_steps()
 
         self.prob.solve(
             plp.PULP_CBC_CMD(
@@ -52,8 +63,8 @@ class LinProgMaker:
         self.min_working_time = processor.get_min_working_time()
 
     def init_decision_variables(self) -> None:
-        self.Ts = plp.LpVariable.dicts(
-            "Ts", [k for k in self.time_steps], cat=plp.LpInteger, lowBound=0
+        self.L = plp.LpVariable.dicts(
+            "L", [k for k in self.time_intervals], cat=plp.LpInteger, lowBound=0
         )
 
         self.s = plp.LpVariable.dicts(
@@ -78,20 +89,8 @@ class LinProgMaker:
             cat=plp.LpBinary,
         )
 
-        self.t1 = plp.LpVariable.dicts(
-            "t1",
-            [
-                (i, j, k)
-                for i in self.orders
-                for j in self.slots
-                for k in self.time_intervals
-            ],
-            cat=plp.LpInteger,
-            lowBound=0,
-        )
-
-        self.t2 = plp.LpVariable.dicts(
-            "t2",
+        self.t = plp.LpVariable.dicts(
+            "t",
             [
                 (i, j, k)
                 for i in self.orders
@@ -104,24 +103,13 @@ class LinProgMaker:
 
         self.x = plp.LpVariable.dicts(
             "x",
-            [
-                (i, j, k)
-                for i in self.orders
-                for j in self.slots
-                for k in self.time_intervals
-            ],
+            [(j, k) for j in self.slots for k in self.time_intervals],
             cat=plp.LpInteger,
             lowBound=0,
         )
 
     def obective(self) -> None:
-        self.prob += self.Ts[self.last_time_step]
-
-    def ct_first_step(self) -> None:
-        self.prob += self.Ts[1] == 0
-
-    def ct_last_step(self) -> None:
-        self.prob += self.Ts[self.last_time_step] >= self.min_working_time
+        self.prob += plp.lpSum(self.L[k] for k in self.time_intervals)
 
     def ct_any_order_starts_once(self) -> None:
         for i in self.orders:
@@ -130,7 +118,7 @@ class LinProgMaker:
                     self.s[i, j, k] for j in self.slots for k in self.time_intervals
                 )
                 == 1,
-                f"single start {i}",
+                f"StartOrder {i}",
             )
 
     def ct_connect_start_step_with_next_step(self) -> None:
@@ -148,49 +136,31 @@ class LinProgMaker:
         """
         for i in self.orders:
             for j in self.slots:
-                for k1 in self.time_intervals:
-                    for k2 in self.time_intervals:
-                        if k2 > k1:
-                            self.prob += k2 * self.a[i, j, k1] >= k1 * (
-                                self.a[i, j, k2] - self.s[i, j, k2]
-                            )
+                for k in self.time_intervals_exclude_last:
+                    self.prob += (k + 1) * self.a[i, j, k] >= k * (
+                        self.a[i, j, k + 1] - self.s[i, j, k + 1]
+                    )
 
     def ct_time_between_steps(self) -> None:
-        for i in self.orders:
-            for j in self.slots:
-                for k in self.time_intervals:
-                    self.prob += (
-                        (
-                            self.Ts[k + 1] - self.Ts[k]
-                            == self.Tchange * self.a[i, j, k]
-                            + self.Theat * self.s[i, j, k]
-                            + self.t2[i, j, k]
-                            - self.t1[i, j, k]
-                            + self.x[i, j, k]
-                        ),
-                        f"time-between {i}, {j}, {k}",
-                    )
-                    self.prob += self.t1[i, j, k] <= self.t2[i, j, k]
-
-    def ct_start_time_inside_step(self) -> None:
-        for i in self.orders:
-            for j in self.slots:
-                for k in self.time_intervals:
-                    self.prob += (
-                        self.t1[i, j, k]
-                        >= self.Ts[k]
-                        + self.Tchange * self.a[i, j, k]
-                        + self.Theat * self.s[i, j, k],
-                        f"t1-start {i}, {j}, {k}",
-                    )
+        for j in self.slots:
+            for k in self.time_intervals:
+                self.prob += (
+                    self.L[k]
+                    == self.x[j, k]
+                    + plp.lpSum(
+                        self.Tchange * self.a[i, j, k]
+                        + self.Theat * self.s[i, j, k]
+                        + self.t[i, j, k]
+                        for i in self.orders
+                    ),
+                    f"Time-between {j}, {k}",
+                )
 
     def ct_orders_duration(self) -> None:
         for i in self.orders:
             self.prob += (
                 plp.lpSum(
-                    self.t2[i, j, k] - self.t1[i, j, k]
-                    for j in self.slots
-                    for k in self.time_intervals
+                    self.t[i, j, k] for j in self.slots for k in self.time_intervals
                 )
                 == self.durations[i],
                 f"duration {i}",
@@ -202,14 +172,11 @@ class LinProgMaker:
                 for k in self.time_intervals:
                     self.prob += self.a[i, j, k] >= self.s[i, j, k]
 
-    def ct_order_duration_in_time_interval(self) -> None:
+    def ct_duration_inside_time_interval(self) -> None:
         for i in self.orders:
             for j in self.slots:
                 for k in self.time_intervals:
-                    self.prob += (
-                        self.t2[i, j, k] - self.t1[i, j, k]
-                        <= self.durations[i] * self.a[i, j, k]
-                    )
+                    self.prob += self.t[i, j, k] <= self.durations[i] * self.a[i, j, k]
 
     def ct_process_order_in_one_slot(self) -> None:
         for i in self.orders:
