@@ -45,8 +45,7 @@ class CheckNextOrderBeforeStopStrategy(WorkingStrategy):
     ) -> int:
         if orders_left == 0:
             return max(order_durations)
-        else:
-            tmin = min(order_durations)
-            return max(
-                [t for t in order_durations if tmin <= t <= tmin + self.time_treshold]
-            )
+        tmin = min(order_durations)
+        return max(
+            t for t in order_durations if tmin <= t <= tmin + self.time_treshold
+        )
