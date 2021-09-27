@@ -57,10 +57,7 @@ class Press:
         ]
 
     def all_slots_empty(self) -> bool:
-        if len(self.get_durations()) == 0:
-            return True
-        else:
-            return False
+        return len(self.get_durations()) == 0
 
     def process_orders(self, process_time: int) -> None:
         self.total_work_time += process_time
@@ -78,7 +75,7 @@ class Press:
             self.cycle_number += 1
             self.add_change_order_time()
             for i in self.get_empty_slot():
-                if len(orders) == 0:
+                if not orders:
                     break
                 order = orders.pop(0)
                 self.put_order_to_slot(i, order)
@@ -111,9 +108,7 @@ class Press:
     def print_state(self, msg: str) -> None:
         print(f"Cycle = {self.cycle_number}")
         print(f"Time = {self.total_work_time}. {msg}")
-        s = ""
-        for order in self.slot:
-            s += f"{order.__str__()} | "
+        s = "".join(f"{order.__str__()} | " for order in self.slot)
         print(s + "\n")
 
     def save_state(self, step: str, worktime_time_stop: Optional[int] = None) -> None:
