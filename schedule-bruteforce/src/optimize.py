@@ -39,6 +39,6 @@ def brute_force_optimize(
                 best_sequence = [runseq]
             best_cycle_number = cycle_number
         print("Local best sequence is found.")
-        if len(_result) == 0:
+        if not _result:
             break
     return best_time, best_cycle_number, best_sequence
