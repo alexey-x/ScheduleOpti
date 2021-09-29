@@ -36,6 +36,9 @@ class DataProcessor:
             time_steps_number = self.num_time_interval + 1
         return [i for i in range(1, time_steps_number + 1)]
 
+    def get_max_duration(self) -> int:
+        return  max(self.get_durations().values())
+
     def get_min_working_time(self) -> int:
         """Most general estimation - one order may be so long that others finish earlier."""
         init_time = self.const.TCHANGE + self.const.THEAT
