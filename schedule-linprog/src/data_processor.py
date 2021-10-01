@@ -27,7 +27,7 @@ class DataProcessor:
         return self.const.THEAT
 
     def get_min_number_interval(self) -> int:
-        return (self.get_orders_number() + 2)//3
+        return (self.get_orders_number() + 2) // 3
 
     def get_time_steps(self) -> List[int]:
         if self.num_time_interval is None:
@@ -37,11 +37,8 @@ class DataProcessor:
         return [i for i in range(1, time_steps_number + 1)]
 
     def get_max_duration(self) -> int:
-        return  max(self.get_durations().values())
+        return max(self.get_durations().values())
 
     def get_min_working_time(self) -> int:
         """Most general estimation - one order may be so long that others finish earlier."""
-        init_time = self.const.TCHANGE + self.const.THEAT
-        #max_duration = max([i for i in self.get_durations().values()])
-        max_duration = max(self.get_durations().values())
-        return init_time + max_duration
+        return self.const.TCHANGE + self.const.THEAT + self.get_max_duration()
