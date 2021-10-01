@@ -3,31 +3,17 @@ from itertools import combinations
 from collections import Iterable
 
 def flatten(lst):
-    """Make flat nested lists or tuples."""
+    """Make flat nested lists or tuples. Taken from github."""
     for item in lst:
         if isinstance(item, Iterable) and not isinstance(item, str):
-            for x in flatten(item):
-                yield x
+            yield from flatten(item)
         else:        
             yield item
 
-
-
-#   See Task description for details.
-#   For bruete force we need all permutations of orders. Then we start from first triple and proceed.
-#   For the 13 orders there are 13! permutations. The number impossible to handle even with 8 processors.
-#   But notice that reuslt for (1, 2, 3) will not differ from the one for (2, 3, 1). 
-#   So, I don't need all permutations but only subset with unqiue triples.
-#   This functions solves the problem.
-
-
-# TODO 
-# 1. rename the function and variables
+#  See TaskDescription_EN notebook for details (Sequences generation subsection.).
 def get_permutations(sequence: Iterable, n: int): # returns generator of lists
     seq_length = len(sequence)
     filled_slots, rest  = divmod(seq_length, n)
-    # combinations when all slots are full 
-    # time of the task is max duration of single orders
     
     comb_all_slots = combinations(sequence, n)
     comb_rest = list(combinations(sequence, rest))
