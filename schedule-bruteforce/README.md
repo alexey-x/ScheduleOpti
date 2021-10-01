@@ -34,3 +34,8 @@ python SchedulePrintDoor.py --strategy=chk-next-order --num-orders=7
 ```
 
 The output will be the file "brute-chk-next-order-7-orders.txt" in the result folder.
+
+## TODO
+
+1. couple words of print_result.py
+2. delete of say couple of words about adjust_printing.py.
