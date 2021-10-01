@@ -1,0 +1,4 @@
+Strategy = chk-next-order
+BestTime = 1702
+Cycles = 3
+0: 0, 1, 2, 3, 4

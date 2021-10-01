@@ -1,0 +1,4 @@
+Strategy = do-long-order
+BestTime = 3244
+Cycles = 5
+0: 0, 2, 5, 1, 9, 10, 3, 8, 12, 4, 6, 7, 11
