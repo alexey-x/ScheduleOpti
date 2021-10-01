@@ -22,13 +22,7 @@ class LinProgMaker:
         self.ct_one_order_per_slot_at_one_step()
         self.ct_time_step_less_than_max_duration()
 
-        self.prob.solve(
-            plp.PULP_CBC_CMD(
-                msg=True,
-                #gapRel=0.05,
-                # timeLimit=200,
-            )
-        )
+        self.prob.solve(plp.PULP_CBC_CMD(msg=True))
 
         self.status = plp.LpStatus[self.prob.status]
         self.objective_value = plp.value(self.prob.objective)
@@ -42,6 +36,10 @@ class LinProgMaker:
         self.Theat = processor.get_heating_time()
 
     def init_decision_variables(self) -> None:
+        """
+        X[k] - the length of k-th time interval.
+        y[i, j, k] - if the i-th order will be prpocessed in slot j at time interval k.
+        """
         self.x = plp.LpVariable.dicts(
             "X", [k for k in self.time_intervals], cat=plp.LpInteger, lowBound=0
         )
@@ -70,13 +68,20 @@ class LinProgMaker:
                 == 1,
                 f"single start {i}",
             )
-    
+
     def ct_one_order_per_slot_at_one_step(self):
+        """One or none order can be processed at the given time step at one slot."""
         for j in self.slots:
             for k in self.time_intervals:
                 self.prob += plp.lpSum(self.y[i, j, k] for i in self.orders) <= 1
 
     def ct_time_step_less_than_max_duration(self) -> None:
+        """
+        For the given time interval x[k] there are j = 1,2,3 slots.
+        In each slot one order can be processed.
+        None of the others orders start untill the longest is done.
+        Therefore x[k] <= max(d[i]) for the orders currently processed. 
+        """
         for j in self.slots:
             for k in self.time_intervals:
                 self.prob += (
