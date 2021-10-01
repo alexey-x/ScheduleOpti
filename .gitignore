@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 
 
-# Doc files from DIma
+# My files
 Doc/
-result/
 model.lp
