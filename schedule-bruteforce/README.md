@@ -1,6 +1,6 @@
 # Purpose
 
-It is simulation of the work of printing doors press.
+It is the simulation of the work for press printing the doors.
 
 The idea is to generate all possible sequencies of input orders and select the one
 with the shortest working time.
@@ -17,10 +17,10 @@ Try
 python SchedulePrintDoor.py --help
 ```
 
-The input file is in the data folder "orders.xlsx".
+The input file is in the data folder "data".
 
 
-Use DoShortOrderAndStopStrategy for the first 7 orders. 
+Example: use DoShortOrderAndStopStrategy for the first 7 orders. 
 ```
 python SchedulePrintDoor.py --strategy=do-short-order --num-orders=7
 ```
@@ -28,7 +28,7 @@ python SchedulePrintDoor.py --strategy=do-short-order --num-orders=7
 The output will be the file "brute-do-short-order-7-orders.txt" in the result folder.
 
 
-Use CheckNextOrderBeforeStopStrategy for the first 7 orders.
+Example: CheckNextOrderBeforeStopStrategy for the first 7 orders.
 ```
 python SchedulePrintDoor.py --strategy=chk-next-order --num-orders=7
 ```
