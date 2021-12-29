@@ -21,16 +21,13 @@ class LinProgMaker:
     def solve(self) -> None:
         self.obective()
 
-        # for constrain, apply in self.config["constraints"].items():
-        #    if apply:
-        #        self.__getattribute__(constrain)()
-
         self.ct_any_order_starts_once()
+        self.ct_start_order()
         self.ct_connect_start_step_with_next_step()
         self.ct_no_stops_if_started()
         self.ct_time_between_steps()
         self.ct_orders_duration()
-        self.ct_start_order()
+        self.ct_idle_time_zero_for_long_order()
         self.ct_duration_inside_time_interval()
         self.ct_one_order_per_slot_at_one_step()
         self.ct_process_order_in_one_slot()
@@ -51,7 +48,6 @@ class LinProgMaker:
         self.orders = processor.get_orders()
         self.slots = processor.get_slots()
         self.time_steps = processor.get_time_steps()
-        self.last_time_step = self.time_steps[-1]
 
         self.time_intervals = self.time_steps[:-1]
         self.time_intervals_exclude_last = self.time_intervals[:-1]
@@ -60,11 +56,9 @@ class LinProgMaker:
         self.Tchange = processor.get_changing_time()
         self.Theat = processor.get_heating_time()
 
-        self.min_working_time = processor.get_min_working_time()
-
     def init_decision_variables(self) -> None:
         self.L = plp.LpVariable.dicts(
-            "L", [k for k in self.time_intervals], cat=plp.LpInteger, lowBound=0
+            "L", list(self.time_intervals), cat=plp.LpInteger, lowBound=0
         )
 
         self.s = plp.LpVariable.dicts(
@@ -121,6 +115,12 @@ class LinProgMaker:
                 f"StartOrder {i}",
             )
 
+    def ct_start_order(self) -> None:
+        for i in self.orders:
+            for j in self.slots:
+                for k in self.time_intervals:
+                    self.prob += self.a[i, j, k] >= self.s[i, j, k]
+
     def ct_connect_start_step_with_next_step(self) -> None:
         for i in self.orders:
             for j in self.slots:
@@ -165,6 +165,20 @@ class LinProgMaker:
                 == self.durations[i],
                 f"duration {i}",
             )
+
+    def ct_idle_time_zero_for_long_order(self) -> None:
+        """Idle time must be zero if order is longer than two time intervals."""
+        for j in self.slots:
+            for k in self.time_intervals_exclude_last:
+                self.prob += (
+                    self.x[j, k]
+                    <= plp.lpSum(
+                        self.durations[i]
+                        * (self.a[i, j, k] - self.a[i, j, k + 1] + self.s[i, j, k + 1])
+                        for i in self.orders
+                    ),
+                    f"IdleTimeZero {j}, {k}",
+                )
 
     def ct_start_order(self) -> None:
         for i in self.orders:
