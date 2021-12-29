@@ -30,7 +30,7 @@ class DataWriter:
             for j in self.task.slots:
                 for i in self.task.orders:
                     if self.task.a[i, j, k].value() == 0:
-                        continue
+                        pass#continue
                     result.loc[row_number, cols] = (
                         k,
                         j,
@@ -39,6 +39,7 @@ class DataWriter:
                         ts,
                         self.task.L[k].value(),
                         self.task.t[i, j, k].value(),
+                        #self.task.L[k].value() - self.task.t[i, j, k].value() - self.task.Theat - self.task.Tchange,
                         self.task.x[j, k].value(),
                         self.task.s[i, j, k].value(),
                         self.task.a[i, j, k].value(),
